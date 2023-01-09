@@ -1,0 +1,326 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 38096096
+    name: "ingress.table_block"
+    alias: "table_block"
+  }
+  match_fields {
+    id: 1
+    name: "user_md.hashed_address"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 33281717
+  }
+  action_refs {
+    id: 21257015
+  }
+  size: 1024
+}
+actions {
+  preamble {
+    id: 21257015
+    name: "NoAction"
+    alias: "NoAction"
+    annotations: "@noWarn(\"unused\")"
+  }
+}
+actions {
+  preamble {
+    id: 33281717
+    name: "ingress.drop"
+    alias: "drop"
+  }
+}
+actions {
+  preamble {
+    id: 26122104
+    name: "ingress.compute_server_flow"
+    alias: "compute_server_flow"
+  }
+}
+actions {
+  preamble {
+    id: 30912568
+    name: "ingress.compute_client_flow"
+    alias: "compute_client_flow"
+  }
+}
+registers {
+  preamble {
+    id: 372617042
+    name: "ingress.pkt_counter"
+    alias: "pkt_counter"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 371323475
+    name: "ingress.last_time_reg"
+    alias: "last_time_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 48
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 379913761
+    name: "ingress.win_interval_reg"
+    alias: "win_interval_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 48
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 371765982
+    name: "ingress.win_maxint_reg"
+    alias: "win_maxint_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 48
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 378091568
+    name: "ingress.win_minint_reg"
+    alias: "win_minint_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 48
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 370857067
+    name: "ingress.win_pkgcount_reg"
+    alias: "win_pkgcount_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 376632007
+    name: "ingress.win_pkglength_reg"
+    alias: "win_pkglength_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 370156946
+    name: "ingress.win_maxlength_reg"
+    alias: "win_maxlength_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 381119895
+    name: "ingress.win_minlength_reg"
+    alias: "win_minlength_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 374429999
+    name: "ingress.win_fin_reg"
+    alias: "win_fin_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 8
+      }
+    }
+  }
+  size: 1024
+}
+registers {
+  preamble {
+    id: 376773347
+    name: "ingress.win_syn_reg"
+    alias: "win_syn_reg"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 8
+      }
+    }
+  }
+  size: 1024
+}
+digests {
+  preamble {
+    id: 402184575
+    name: "mac_learn_digest_t"
+    alias: "mac_learn_digest_t"
+  }
+  type_spec {
+    struct {
+      name: "mac_learn_digest_t"
+    }
+  }
+}
+type_info {
+  structs {
+    key: "mac_learn_digest_t"
+    value {
+      members {
+        name: "win_pkglength"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 32
+            }
+          }
+        }
+      }
+      members {
+        name: "win_pkgcount"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 32
+            }
+          }
+        }
+      }
+      members {
+        name: "win_maxlength"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 32
+            }
+          }
+        }
+      }
+      members {
+        name: "win_minlength"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 32
+            }
+          }
+        }
+      }
+      members {
+        name: "win_maxint"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 48
+            }
+          }
+        }
+      }
+      members {
+        name: "win_minint"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 48
+            }
+          }
+        }
+      }
+      members {
+        name: "win_fin"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 8
+            }
+          }
+        }
+      }
+      members {
+        name: "win_syn"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 8
+            }
+          }
+        }
+      }
+      members {
+        name: "category"
+        type_spec {
+          bitstring {
+            bit {
+              bitwidth: 8
+            }
+          }
+        }
+      }
+    }
+  }
+}
