@@ -180,7 +180,6 @@ control ingress(
         else{
             compute_client_flow();
         }
-        table_block.apply();
 	}
 
     // read registers

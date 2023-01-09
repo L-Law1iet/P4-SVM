@@ -1,41 +1,6 @@
 pkg_info {
   arch: "v1model"
 }
-tables {
-  preamble {
-    id: 38096096
-    name: "ingress.table_block"
-    alias: "table_block"
-  }
-  match_fields {
-    id: 1
-    name: "user_md.hashed_address"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 33281717
-  }
-  action_refs {
-    id: 21257015
-  }
-  size: 1024
-}
-actions {
-  preamble {
-    id: 21257015
-    name: "NoAction"
-    alias: "NoAction"
-    annotations: "@noWarn(\"unused\")"
-  }
-}
-actions {
-  preamble {
-    id: 33281717
-    name: "ingress.drop"
-    alias: "drop"
-  }
-}
 actions {
   preamble {
     id: 26122104
