@@ -35,6 +35,8 @@ features = ({
     'min iat': [],
     'fin count': [],
     'syn count': [],
+    'psh count': [],
+    'ack count': [],
     'predict': []
 })
 df = pd.DataFrame(features)
@@ -117,6 +119,8 @@ def show_state(response, lock):
     win_minint = 0
     win_fin = 0
     win_syn = 0
+    win_psh = 0
+    win_ack = 0
     win_predict = 0
     i = 0
     global df
@@ -138,11 +142,15 @@ def show_state(response, lock):
         elif i == 7:
             win_syn = state
         elif i == 8:
+            win_psh = state
+        elif i == 9:
+            win_ack = state
+        elif i == 10:
             win_predict = state
         i = i + 1
     # 接收 p4 switch data, 把data寫進csv
     new_row = {'flow duration': win_pkglength, 'packet count': win_pkgcount, 'max pkt_length': win_maxlength,
-                'min pkt_length': win_minlength, 'max iat': win_maxint, 'min iat': win_minint, 'fin count': win_fin, 'syn count': win_syn, 'predict': win_predict}
+                'min pkt_length': win_minlength, 'max iat': win_maxint, 'min iat': win_minint, 'fin count': win_fin, 'syn count': win_syn, 'psh count': win_psh, 'ack count': win_ack, 'predict': win_predict}
     df = df.append(new_row, ignore_index=True)
 
 def stream(stub):

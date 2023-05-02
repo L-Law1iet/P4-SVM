@@ -69,6 +69,8 @@ struct mac_learn_digest_t {
     bit<48> win_minint;
     bit<8> win_fin;
     bit<8> win_syn;
+    bit<8> win_psh;
+    bit<8> win_ack;
     bit<8> category;
 }
 
@@ -138,6 +140,8 @@ control ingress(
     register<bit<32>>(1024) win_minlength_reg;
     register<bit<8>>(1024) win_fin_reg;
     register<bit<8>>(1024) win_syn_reg;
+    register<bit<8>>(1024) win_psh_reg;
+    register<bit<8>>(1024) win_ack_reg;
 
     action drop() {
         mark_to_drop(st_md);
@@ -154,8 +158,10 @@ control ingress(
 	}
 
     apply {
-    bit<8> fin_value = 0;
-	bit<8> syn_value = 0;
+    bit<1> fin_value = 0;
+	bit<1> syn_value = 0;
+    bit<1> psh_value = 0;
+	bit<1> ack_value = 0;
 	bit<32> pkt_counter_value;
     bit<32> curr_pcaket_length;
     bit<32> cal_pcaket_length;
@@ -169,8 +175,11 @@ control ingress(
     bit<32> win_minlength = 0;
     bit<8> win_fin = 0;
     bit<8> win_syn = 0;
+    bit<8> win_psh = 0;
+    bit<8> win_ack = 0;
     bit<48> curr_interval = 0;
     int<64> predict = 0;
+    int<64> predict_margin = 0;
     bit<8> category = 0;
 
     if(hdr.ipv4.isValid()){
@@ -195,6 +204,9 @@ control ingress(
     win_minlength_reg.read(win_minlength, user_md.hashed_address);    
     win_fin_reg.read(win_fin, user_md.hashed_address);
     win_syn_reg.read(win_syn, user_md.hashed_address);
+    win_psh_reg.read(win_psh, user_md.hashed_address);
+    win_ack_reg.read(win_ack, user_md.hashed_address);
+
 
     curr_pcaket_length = st_md.packet_length;
 
@@ -208,13 +220,19 @@ control ingress(
     }
 
 	if(hdr.tcp.isValid()){
-            if (hdr.tcp.flags == 1) {
+            if ((hdr.tcp.ctrl & 0b000001) > 0) {
                 fin_value = 1;
             }
-            if (hdr.tcp.flags == 2) {
+            if ((hdr.tcp.ctrl & 0b000010) > 0) {
                 syn_value = 1;
             }
-        }
+            if ((hdr.tcp.ctrl & 0b001000) > 0) {
+                psh_value = 1;
+            }
+            if ((hdr.tcp.ctrl & 0b010000) > 0) {
+                ack_value = 1;
+            }
+    }
 
     // 計算time window, 時間為2秒。
     win_interval = win_interval + curr_interval;
@@ -226,6 +244,8 @@ control ingress(
         //計算 fin,syn flags 數
         win_fin = win_fin + fin_value;
         win_syn = win_syn + syn_value;
+        win_psh = win_psh + psh_value;
+        win_ack = win_ack + ack_value;
         // 計算 max packet length, min packet length
         if(win_pkgcount == 1){
             win_maxlength = st_md.packet_length;
@@ -262,6 +282,8 @@ control ingress(
         win_minlength_reg.write(user_md.hashed_address,win_minlength);
         win_fin_reg.write(user_md.hashed_address,win_fin);
         win_syn_reg.write(user_md.hashed_address,win_syn);
+        win_psh_reg.write(user_md.hashed_address,win_psh);
+        win_ack_reg.write(user_md.hashed_address,win_ack);
     }
     // 超過time window時間,重置register,進行svm計算得出預測結果
     if(win_interval >= 2000000){
@@ -274,24 +296,32 @@ control ingress(
         win_minlength_reg.write(user_md.hashed_address,0);
         win_fin_reg.write(user_md.hashed_address,0);
         win_syn_reg.write(user_md.hashed_address,0);
-        predict = predict + (int<64>)(bit<64>)win_pkglength * 98;
-        predict = predict + (int<64>)(bit<64>)win_pkgcount * 7231;
-        predict = predict - (int<64>)(bit<64>)win_maxlength * 2920;
-        predict = predict + (int<64>)(bit<64>)win_minlength * 14047;
-        predict = predict + (int<64>)(bit<64>)win_maxint * 41;
-        predict = predict + (int<64>)(bit<64>)win_minint * 97076;
-        predict = predict - (int<64>)(bit<64>)win_fin * 41573;
-        predict = predict - (int<64>)(bit<64>)win_syn * 34703;
-        predict = predict + 1422790;
-        // 若predict值大於0為良性流量,小於0為DDoS攻擊
+        win_psh_reg.write(user_md.hashed_address,0);
+        win_ack_reg.write(user_md.hashed_address,0);
+        predict = predict - (int<64>)(bit<64>)win_pkglength * 33;
+        predict = predict - (int<64>)(bit<64>)win_pkgcount * 26496;
+        predict = predict + (int<64>)(bit<64>)win_maxlength * 2143;
+        predict = predict - (int<64>)(bit<64>)win_minlength * 4504;
+        predict = predict + (int<64>)(bit<64>)win_maxint * 252;
+        predict = predict + (int<64>)(bit<64>)win_minint * 317;
+        predict = predict - (int<64>)(bit<64>)win_fin * 115327;
+        predict = predict + (int<64>)(bit<64>)win_syn * 4326;
+        predict = predict - (int<64>)(bit<64>)win_psh * 87728;
+        predict = predict + (int<64>)(bit<64>)win_ack * 31368;
+        predict_margin = predict + 406011000;
+        predict = predict + 6011000;
+        // if(predict_margin > 0 && predict <= 0){
+        // // 邊界值送往Controller
+        // digest<mac_learn_digest_t>(1, {win_pkglength, win_pkgcount, win_maxlength, win_minlength, win_maxint, win_minint, win_fin, win_syn, win_psh, win_ack, category});
+        // }
+        // 若predict值大於0為良性流量,小於等於0為DDoS攻擊
         if(predict > 0){
             category = 0;
         }
         else{
             category = 1;
         }
-        // 將統計資料透過digest給controller
-        digest<mac_learn_digest_t>(1, {win_pkglength, win_pkgcount, win_maxlength, win_minlength, win_maxint, win_minint, win_fin, win_syn, category});
+        digest<mac_learn_digest_t>(1, {win_pkglength, win_pkgcount, win_maxlength, win_minlength, win_maxint, win_minint, win_fin, win_syn, win_psh, win_ack, category});
     }
     if(st_md.ingress_port == 1){
         st_md.egress_spec = 2;
